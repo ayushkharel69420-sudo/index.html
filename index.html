@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Browser</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #fff;
+    }
+
+    #home {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    h1 {
+        font-size: 60px;
+        color: #4285f4;
+    }
+
+    input {
+        width: 400px;
+        padding: 12px;
+        font-size: 18px;
+        border-radius: 25px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 10px 20px;
+        border-radius: 20px;
+        border: none;
+        background: #4285f4;
+        color: white;
+        cursor: pointer;
+    }
+
+    #browser {
+        display: none;
+        height: 100vh;
+        width: 100vw;
+        flex-direction: column;
+    }
+
+    #toolbar {
+        background: #f1f1f1;
+        padding: 10px;
+    }
+
+    iframe {
+        flex: 1;
+        width: 100%;
+        border: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="home">
+    <h1>Mini Browser</h1>
+    <input type="text" id="searchInput" placeholder="Type a website or search">
+    <button onclick="search()">Go</button>
+</div>
+
+<div id="browser">
+    <div id="toolbar">
+        <button onclick="goHome()">🏠 Home</button>
+    </div>
+    <iframe id="viewer"></iframe>
+</div>
+
+<script>
+const shortcuts = {
+    "youtube": "youtube.com",
+    "google": "google.com",
+    "github": "github.com",
+    "tiktok": "tiktok.com",
+    "instagram": "instagram.com",
+    "twitter": "twitter.com",
+    "facebook": "facebook.com",
+    "reddit": "reddit.com",
+    "netflix": "netflix.com",
+    "amazon": "amazon.com",
+    "roblox": "roblox.com",
+    "2v2": "2v2.io",
+    "kongregate": "kongregate.com",
+    "poki": "poki.com"
+};
+
+// Sites that **cannot be embedded in iframe**
+const blockedSites = [
+    "google.com", "youtube.com", "instagram.com", "facebook.com",
+    "tiktok.com", "roblox.com", "duckduckgo.com", "reddit.com",
+    "2v2.io", "kongregate.com", "poki.com"
+];
+
+function search() {
+    let input = document.getElementById("searchInput").value.trim();
+    if (!input) return;
+
+    let parts = input.split(" ");
+    let firstWord = parts[0].toLowerCase();
+    let rest = parts.slice(1).join(" ");
+    let url;
+
+    // Shortcut handling
+    if (shortcuts[firstWord]) {
+        // If site is blocked, open in new tab
+        if (blockedSites.includes(shortcuts[firstWord])) {
+            switch(firstWord) {
+                case "youtube":
+                    url = rest ? "https://www.youtube.com/results?search_query=" + encodeURIComponent(rest) : "https://www.youtube.com";
+                    break;
+                case "google":
+                    url = rest ? "https://www.google.com/search?q=" + encodeURIComponent(rest) : "https://www.google.com";
+                    break;
+                case "roblox":
+                    url = rest ? "https://www.roblox.com/search/users?keyword=" + encodeURIComponent(rest) : "https://www.roblox.com";
+                    break;
+                case "2v2":
+                    url = "https://2v2.io";
+                    break;
+                case "kongregate":
+                    url = "https://www.kongregate.com";
+                    break;
+                case "poki":
+                    url = "https://poki.com";
+                    break;
+                default:
+                    url = "https://www." + shortcuts[firstWord];
+            }
+            window.open(url, "_blank");
+            document.getElementById("searchInput").value = "";
+            return;
+        } else {
+            // Site allowed in iframe
+            url = "https://www." + shortcuts[firstWord];
+        }
+    }
+    // Single word not in shortcuts → assume www.<input>.com
+    else if (parts.length === 1) {
+        url = "https://www." + input + ".com";
+        if (blockedSites.some(site => url.includes(site))) {
+            window.open(url, "_blank");
+            document.getElementById("searchInput").value = "";
+            return;
+        }
+    }
+    // Multi-word input → safe iframe-friendly search
+    else {
+        url = "https://www.example.com/search?q=" + encodeURIComponent(input); // Replace with a safe iframe-friendly search engine
+    }
+
+    document.getElementById("home").style.display = "none";
+    document.getElementById("browser").style.display = "flex";
+    document.getElementById("viewer").src = url;
+    document.getElementById("searchInput").value = "";
+}
+
+function goHome() {
+    document.getElementById("viewer").src = "";
+    document.getElementById("browser").style.display = "none";
+    document.getElementById("home").style.display = "flex";
+}
+
+// Press Enter to search
+document.getElementById("searchInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") search();
+});
+</script>
+
+</body>
+</html>
